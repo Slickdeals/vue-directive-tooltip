@@ -35,12 +35,12 @@ export default {
     config: {},
     install (Vue, installOptions) {
         Vue.directive('tooltip', {
-            bind (el, binding, vnode) {
+            beforeMount (el, binding, vnode) {
                 if (installOptions) {
                     Tooltip.defaults(installOptions);
                 }
             },
-            inserted (el, binding, vnode, oldVnode) {
+            mounted (el, binding, vnode, oldVnode) {
                 if (installOptions) {
                     Tooltip.defaults(installOptions);
                 }
@@ -56,12 +56,12 @@ export default {
                     el.tooltip.disabled = true;
                 }
             },
-            componentUpdated (el, binding, vnode, oldVnode) {
+            updated (el, binding, vnode, oldVnode) {
                 if (hasUpdated(binding.value, binding.oldValue)) {
                     update(el, binding, vnode, oldVnode);
                 }
             },
-            unbind (el, binding, vnode, oldVnode) {
+            unmounted (el, binding, vnode, oldVnode) {
                 el.tooltip.destroy();
             }
         });
