@@ -1,4 +1,4 @@
-import Popper from 'popper.js';
+import { createPopper } from '@popperjs/core';
 
 const CSS = {
     HIDDEN: 'vue-tooltip-hidden',
@@ -20,11 +20,21 @@ const DEFAULT_OPTIONS = {
     fixIosSafari: false,
     eventsEnabled: false,
     html: false,
-    modifiers: {
-        arrow: {
-            element: '.tooltip-arrow'
-        }
-    },
+    modifiers: [
+        {
+            name: 'arrow',
+            options: {
+                element: '.tooltip-arrow'
+            }
+        },
+        {
+            name: 'oldOnUpdate',
+            enabled: true,
+            phase: 'afterWrite',
+            fn () {
+                this.content(this.tooltip.options.title);
+            }
+        }],
     placement: '',
     placementPostfix: null, // start | end
     removeOnDestroy: true,
@@ -44,11 +54,7 @@ export default class Tooltip {
         this._options = {
             ...Tooltip._defaults,
             ...{
-                onCreate: (data) => {
-                    this.content(this.tooltip.options.title);
-                    // this._$tt.update();
-                },
-                onUpdate: (data) => {
+                onFirstUpdate: (data) => {
                     this.content(this.tooltip.options.title);
                     // this._$tt.update();
                 }
@@ -59,7 +65,7 @@ export default class Tooltip {
         this._$el = el;
 
         this._$tpl = this._createTooltipElement(this.options);
-        this._$tt = new Popper(el, this._$tpl, this._options);
+        this._$tt = createPopper(el, this._$tpl, this._options);
         this.setupPopper();
     }
 
@@ -68,7 +74,15 @@ export default class Tooltip {
         this.disabled = false;
         this._visible = false;
         this._clearDelay = null;
-        this._$tt.disableEventListeners();
+
+        this._$tt.setOptions(options => ({
+            ...options,
+            modifiers: [
+                ...options.modifiers,
+                { name: 'eventListeners', enabled: false }
+            ]
+        }));
+
         this._setEvents();
     }
 
@@ -143,9 +157,15 @@ export default class Tooltip {
                     // Need the timeout to be sure that the element is inserted in the DOM
                     setTimeout(() => {
                         // enable eventListeners
-                        this._$tt.enableEventListeners();
+                        this._$tt.setOptions(options => ({
+                            ...options,
+                            modifiers: [
+                                ...options.modifiers,
+                                { name: 'eventListeners', enabled: true }
+                            ]
+                        }));
                         // only update if the tooltip is visible
-                        this._$tt.scheduleUpdate();
+                        this._$tt.update();
                         // switch CSS
                         this._$tpl.classList.replace(CSS.HIDDEN, CSS.VISIBLE);
                     }, 60);
@@ -156,7 +176,13 @@ export default class Tooltip {
                         this._$tpl.parentNode.removeChild(this._$tpl);
                     }
 
-                    this._$tt.disableEventListeners();
+                    this._$tt.setOptions(options => ({
+                        ...options,
+                        modifiers: [
+                            ...options.modifiers,
+                            { name: 'eventListeners', enabled: false }
+                        ]
+                    }));
                 }
             }, delay);
         }
@@ -171,7 +197,7 @@ export default class Tooltip {
         // make arrow
         let $arrow = document.createElement('div');
         $arrow.setAttribute('class', 'tooltip-arrow');
-        $arrow.setAttribute('x-arrow', '');
+        $arrow.setAttribute('data-popper-arrow', '');
         $popper.appendChild($arrow);
 
         // make content container

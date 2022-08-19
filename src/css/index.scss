@@ -42,11 +42,11 @@ $popper-background-color: #000 !default;
         margin: 5px;
     }
 
-    &[x-out-of-boundaries] {
+    &[data-popper-reference-hidden] {
         display: none;
     }
     
-    &[x-placement^="bottom"] {
+    &[data-popper-placement^="bottom"] {
         margin-top: 5px;
         
         .tooltip-arrow {
@@ -61,7 +61,7 @@ $popper-background-color: #000 !default;
         }
     }
     
-    &[x-placement^="top"] {
+    &[data-popper-placement^="top"] {
         margin-bottom: 5px;
         
         .tooltip-arrow {
@@ -76,7 +76,7 @@ $popper-background-color: #000 !default;
         }
     }
     
-    &[x-placement^="right"] {
+    &[data-popper-placement^="right"] {
         margin-left: 5px;
         
         .tooltip-arrow {
@@ -91,7 +91,7 @@ $popper-background-color: #000 !default;
         }
     }
     
-    &[x-placement^="left"] {
+    &[data-popper-placement^="left"] {
         margin-right: 5px;
         
         .tooltip-arrow {
