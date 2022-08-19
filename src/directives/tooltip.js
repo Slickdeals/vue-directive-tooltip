@@ -54,8 +54,8 @@ export default class Tooltip {
         this._options = {
             ...Tooltip._defaults,
             ...{
-                onFirstUpdate: (data) => {
-                    this.content(this.tooltip.options.title);
+                onFirstUpdate: (state) => {
+                    this.content(state.options.title);
                     // this._$tt.update();
                 }
             },
@@ -282,16 +282,16 @@ export default class Tooltip {
     }
 
     content (content) {
-        const wrapper = this.tooltip.popper.querySelector('.tooltip-content');
+        console.log(this._$tt);
+        const wrapper = this._$tt.state.elements.popper.querySelector('.tooltip-content');
         if (typeof content === 'string') {
-            this.tooltip.options.title = content;
+            this._$tt.state.options.title = content;
             wrapper.textContent = content;
         } else if (isElement(content)) {
             if (content !== wrapper.children[0]) {
                 wrapper.innerHTML = '';
                 // this.tooltip.htmlContent = content.cloneNode(true);
-                this.tooltip.htmlContent = content;
-                wrapper.appendChild(this.tooltip.htmlContent);
+                wrapper.appendChild(content);
             }
         } else {
             console.error('unsupported content type', content); // eslint-disable-line
@@ -309,7 +309,7 @@ export default class Tooltip {
     static filterOptions (options) {
         let opt = {...options};
 
-        opt.modifiers = {};
+        opt.modifiers = [];
         let head = null;
         let tail = null;
         if (opt.placement.indexOf('-') > -1) {
@@ -319,31 +319,16 @@ export default class Tooltip {
             opt.placement = (includes(PLACEMENT, opt.placement)) ? opt.placement : Tooltip._defaults.placement;
         }
 
-        opt.modifiers.offset = {
-            fn: Tooltip._setOffset
-        };
+        const offset = (window.isNaN(options.offset) || options.offset < 0) ? Tooltip._defaults.offset : options.offset;
+
+        opt.modifiers.push({
+            name: 'offset',
+            options: {
+                offset: [offset, offset],
+              },
+        });
 
         return opt;
-    }
-
-    static _setOffset (data, opts) {
-        let offset = data.instance.options.offset;
-
-        if (window.isNaN(offset) || offset < 0) {
-            offset = Tooltip._defaults.offset;
-        }
-
-        if (data.placement.indexOf('top') !== -1) {
-            data.offsets.popper.top -= offset;
-        } else if (data.placement.indexOf('right') !== -1) {
-            data.offsets.popper.left += offset;
-        } else if (data.placement.indexOf('bottom') !== -1) {
-            data.offsets.popper.top += offset;
-        } else if (data.placement.indexOf('left') !== -1) {
-            data.offsets.popper.left -= offset;
-        }
-
-        return data;
     }
 
     static isIosSafari () {
